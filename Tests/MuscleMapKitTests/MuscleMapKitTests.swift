@@ -63,6 +63,28 @@ final class MuscleMapKitTests: XCTestCase {
         XCTAssertFalse(result.intensities.isEmpty, "the known lift should still count")
     }
 
+    func testKeywordsMatchWholeWordsNotSubstrings() {
+        // "machine" contains "chin" and "cable" contains "ab"; neither is a
+        // chin-up or an ab exercise. Wrong muscles are worse than no muscles.
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Leg Press Machine")?[.quads], 1)
+        XCTAssertNil(ExerciseMuscleMap.activation(for: "Leg Press Machine")?[.lats])
+        XCTAssertNil(ExerciseMuscleMap.activation(for: "Cable Crossover"))
+        XCTAssertNil(ExerciseMuscleMap.activation(for: "Hip Abduction"))
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Chins")?[.biceps], 1)
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Ab Rollout")?[.abs], 1)
+    }
+
+    func testKeywordsStillMatchPluralsCompoundsAndStems() {
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Pullups")?[.lats], 1)
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Pushups")?[.chest], 1)
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Weighted Dips")?[.triceps], 1)
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Cable Flies")?[.chest], 1)
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Standing Calves")?[.calves], 1)
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Rope Triceps Pushdowns")?[.triceps], 1)
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Suitcase Carries")?[.forearms], 1)
+        XCTAssertEqual(ExerciseMuscleMap.activation(for: "Nordic Hamstrings")?[.hamstrings], 1)
+    }
+
     func testIntensitiesAreNormalisedToUnitRange() {
         let result = ExerciseMuscleMap.workoutIntensities(
             exercises: [("Bench Press", 10), ("Squat", 2)])
