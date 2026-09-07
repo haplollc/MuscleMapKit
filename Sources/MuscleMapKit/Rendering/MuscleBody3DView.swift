@@ -11,6 +11,10 @@
 //  region to select it. After a few idle seconds the body slowly auto-spins —
 //  touching it takes control back.
 //
+//  Rendering is on demand: the SceneKit render loop only runs while something
+//  is animating (fade-in, a flick, the tap pulse, the idle spin). A static body
+//  — an inline card with autoRotate off — costs nothing between changes.
+//
 
 import SwiftUI
 import SceneKit
@@ -58,7 +62,7 @@ public struct MuscleBody3DView: UIViewRepresentable {
         view.antialiasingMode = .multisampling4X
         view.preferredFramesPerSecond = 60
         view.allowsCameraControl = false
-        view.isPlaying = true
+        view.isPlaying = false
 
         context.coordinator.attach(view: view, model: model)
         model.apply(intensities: intensities, selected: selected)
@@ -83,6 +87,7 @@ public struct MuscleBody3DView: UIViewRepresentable {
                 guard let coordinator, let model = coordinator.model else { return }
                 model.attach(mesh: mesh)
                 body.eulerAngles.y = restingYaw - 0.85
+                coordinator.animate(for: 0.9)
                 SCNTransaction.begin()
                 SCNTransaction.animationDuration = 0.9
                 SCNTransaction.animationTimingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -122,13 +127,36 @@ public struct MuscleBody3DView: UIViewRepresentable {
         var lastIntensities: [MuscleGroup: Double] = [:]
         var lastSelected: Set<MuscleGroup> = []
         private var idleTimer: Timer?
+        private var pauseWork: DispatchWorkItem?
 
         func attach(view: SCNView, model: MuscleBodyModel) {
             self.view = view
             self.model = model
         }
 
-        deinit { idleTimer?.invalidate() }
+        deinit {
+            idleTimer?.invalidate()
+            pauseWork?.cancel()
+        }
+
+        // MARK: On-demand render loop
+
+        /// Run the render loop for `duration`, then pause it again unless the
+        /// idle spin is running. Direct scene mutations (a drag, a recolor)
+        /// redraw on their own; only actions and implicit animations need the
+        /// loop ticking.
+        func animate(for duration: TimeInterval) {
+            view?.isPlaying = true
+            pauseWork?.cancel()
+            let work = DispatchWorkItem { [weak self] in self?.pauseIfIdle() }
+            pauseWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.05, execute: work)
+        }
+
+        private func pauseIfIdle() {
+            guard model?.bodyNode.action(forKey: "idleSpin") == nil else { return }
+            view?.isPlaying = false
+        }
 
         // MARK: Drag to rotate (yaw free, pitch gently clamped)
 
@@ -147,6 +175,7 @@ public struct MuscleBody3DView: UIViewRepresentable {
                 let spin = SCNAction.rotateBy(x: 0, y: CGFloat(vx) * 0.0006, z: 0,
                                               duration: 0.8)
                 spin.timingMode = .easeOut
+                animate(for: 0.8)
                 body.runAction(spin)
                 scheduleIdleSpin(after: 3.0)
             default:
@@ -169,6 +198,7 @@ public struct MuscleBody3DView: UIViewRepresentable {
             up.timingMode = .easeOut
             let down = SCNAction.scale(by: 1 / 1.025, duration: 0.26)
             down.timingMode = .easeOut
+            animate(for: 0.36)
             model.bodyNode.runAction(.sequence([up, down]))
 
             onTapMuscle?(muscle)
@@ -188,12 +218,15 @@ public struct MuscleBody3DView: UIViewRepresentable {
             guard autoRotate, let body = model?.bodyNode,
                   body.action(forKey: "idleSpin") == nil else { return }
             let spin = SCNAction.rotateBy(x: 0, y: 2 * .pi, z: 0, duration: 26)
+            pauseWork?.cancel()
+            view?.isPlaying = true
             body.runAction(.repeatForever(spin), forKey: "idleSpin")
         }
 
         private func stopIdleSpin() {
             idleTimer?.invalidate()
             model?.bodyNode.removeAction(forKey: "idleSpin")
+            pauseIfIdle()
         }
     }
 }

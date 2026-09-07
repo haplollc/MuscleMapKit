@@ -172,10 +172,28 @@ public enum ExerciseMuscleMap {
     // MARK: - Keyword fallback rules (checked in order)
 
     private struct Rule {
-        let all: [String]          // every keyword must appear
+        let all: [String]          // every keyword must appear as a word
         let activation: [MuscleGroup: Double]
+
+        /// Keywords match whole words, not substrings: "machine" must not
+        /// trigger the chin-up rule and "cable" must not trigger the ab rule.
+        /// A word matches a keyword when it is the keyword, a plural of it,
+        /// or (for keywords of four or more letters) starts with it, which
+        /// keeps "triceps", "hamstrings" and "pullups" resolving. Multi-word
+        /// rules also accept their keywords run together as one word.
         func matches(_ name: String) -> Bool {
-            all.allSatisfy { name.contains($0) }
+            let words = name.split(separator: " ").map(String.init)
+            if all.allSatisfy({ keyword in words.contains { Rule.word($0, matches: keyword) } }) {
+                return true
+            }
+            return all.count > 1 && words.contains { Rule.word($0, matches: all.joined()) }
+        }
+
+        static func word(_ word: String, matches keyword: String) -> Bool {
+            if word == keyword || word == keyword + "s" || word == keyword + "es" { return true }
+            if keyword.hasSuffix("y"), word == keyword.dropLast() + "ies" { return true }
+            if keyword.hasSuffix("f"), word == keyword.dropLast() + "ves" { return true }
+            return keyword.count >= 4 && word.hasPrefix(keyword)
         }
     }
 
