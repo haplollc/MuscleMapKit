@@ -1,7 +1,5 @@
 # MuscleMapKit
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/jcbuilds)
-
 An interactive 3D muscle map for iOS. Hand it a set of muscles and how hard
 each was worked, and it renders a body that shades those muscles, spins under
 your finger, and reports taps back by muscle group.
@@ -13,6 +11,12 @@ your finger, and reports taps back by muscle group.
 Built for [Cinder](https://apps.apple.com/app/id6754781687), where it answers
 the question you actually have after a session: not *did I train*, but *what
 did I actually hit*.
+
+<p align="center">
+  <a href="https://buymeacoffee.com/jcbuilds"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" width="200"></a>
+  <br>
+  <sub>If MuscleMapKit is useful to you, a coffee keeps it going.</sub>
+</p>
 
 ## Install
 
