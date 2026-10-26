@@ -1,5 +1,7 @@
 # MuscleMapKit
 
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/jcbuilds)
+
 An interactive 3D muscle map for iOS. Hand it a set of muscles and how hard
 each was worked, and it renders a body that shades those muscles, spins under
 your finger, and reports taps back by muscle group.
