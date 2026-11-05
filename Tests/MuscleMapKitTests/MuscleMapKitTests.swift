@@ -63,6 +63,20 @@ final class MuscleMapKitTests: XCTestCase {
         XCTAssertFalse(result.intensities.isEmpty, "the known lift should still count")
     }
 
+    func testResolvedAcceptsTheNamesReportedAsUnresolved() {
+        // The README flow: resolve the names in `unresolved` elsewhere, then pass
+        // them back keyed by those same names.
+        let exercises: [(name: String, sets: Int)] = [("Bench Press", 4), ("Zercher Good Morning", 3)]
+        let first = ExerciseMuscleMap.workoutIntensities(exercises: exercises)
+        XCTAssertEqual(first.unresolved, ["Zercher Good Morning"])
+
+        var resolved: [String: [MuscleGroup: Double]] = [:]
+        for name in first.unresolved { resolved[name] = [.hamstrings: 1.0, .lowerBack: 0.7] }
+        let second = ExerciseMuscleMap.workoutIntensities(exercises: exercises, resolved: resolved)
+        XCTAssertTrue(second.unresolved.isEmpty, "a name from unresolved should be accepted as a key")
+        XCTAssertGreaterThan(second.intensities[.hamstrings] ?? 0, 0)
+    }
+
     func testIntensitiesAreNormalisedToUnitRange() {
         let result = ExerciseMuscleMap.workoutIntensities(
             exercises: [("Bench Press", 10), ("Squat", 2)])

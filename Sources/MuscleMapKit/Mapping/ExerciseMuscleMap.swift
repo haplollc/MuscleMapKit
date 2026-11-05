@@ -34,7 +34,8 @@ public enum ExerciseMuscleMap {
     }
 
     /// Aggregate a whole workout into per-muscle intensity 0…1.
-    /// `resolved` supplies activations for names the table couldn't (AI results);
+    /// `resolved` supplies activations for names the table couldn't (AI results),
+    /// keyed by the exercise name as passed in or by its `normalize(_:)` form;
     /// unresolved exercises are skipped and reported via `unresolved`.
     public static func workoutIntensities(
         exercises: [(name: String, sets: Int)],
@@ -46,6 +47,7 @@ public enum ExerciseMuscleMap {
         for exercise in exercises {
             let act = activation(for: exercise.name)
                 ?? resolved[normalize(exercise.name)]
+                ?? resolved[exercise.name]
             guard let act else {
                 unresolved.append(exercise.name)
                 continue
