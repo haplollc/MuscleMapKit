@@ -22,7 +22,7 @@ An interactive 3D muscle map for iOS that shades each muscle by how hard it was 
 **Install**
 
 ```swift
-.package(url: "https://github.com/haplollc/MuscleMapKit.git", from: "1.0.0")
+.package(url: "https://github.com/haplollc/MuscleMapKit.git", branch: "main")
 ```
 
 **Try it**
@@ -49,7 +49,7 @@ did I actually hit*.
 ## Install
 
 ```swift
-.package(url: "https://github.com/haplollc/MuscleMapKit.git", from: "1.0.0")
+.package(url: "https://github.com/haplollc/MuscleMapKit.git", branch: "main")
 ```
 
 ```swift
